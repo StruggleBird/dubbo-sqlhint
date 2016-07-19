@@ -1,0 +1,2 @@
+mycatRouterProviderFilter=org.zt.dubbo.filter.sqlhint.mycat.MycatRouterProviderFilter
+mycatRouterConsumerFilter=org.zt.dubbo.filter.sqlhint.mycat.MycatRouterConsumerFilter
