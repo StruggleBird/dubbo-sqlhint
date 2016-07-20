@@ -1,7 +1,6 @@
 package org.zt.mybatis.plugins;
 
 import java.sql.Connection;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.ibatis.executor.statement.RoutingStatementHandler;
@@ -12,21 +11,22 @@ import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
+import org.zt.dubbo.context.RouterConsts;
+import org.zt.dubbo.context.RouterContext;
+import org.zt.middleware.MycatSqlHint;
+import org.zt.middleware.SqlHint;
 import org.zt.utils.ReflectionUtil;
 
-import com.alibaba.dubbo.rpc.RpcContext;
-
 /**
- * 利用mybatis拦截器实现 @readonly 的sql路由到slave的功能
+ * 利用mybatis拦截器实现sql路由功能
  * 
  * @author Ternence
  */
 @Intercepts({@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class})})
-public class MycatSQLInterceptor implements Interceptor {
+public class SQLRouterInterceptor implements Interceptor {
 
-    private static final String MYCAT_DB_MASTER_HINT = "/*#mycat:db_type=master*/";
-    private static final String MYCAT_DB_SLAVE_HINT = "/*#mycat:db_type=slave*/";
-    private static final String ROUTER_KEY = "_mysqlrouter";
+
+    private static SqlHint sqlHint = new MycatSqlHint();
 
     public Object intercept(Invocation invocation) throws Throwable {
         Object result = null;
@@ -39,20 +39,20 @@ public class MycatSQLInterceptor implements Interceptor {
             // 拦截到的prepare方法参数是一个Connection对象
             Connection connection = (Connection) invocation.getArgs()[0];
             String sql = boundSql.getSql();
-            Map<String, String> attachments = RpcContext.getContext().getAttachments();
 
-            if (attachments.containsKey(ROUTER_KEY) && !hasAnnotation(sql)) {
-                sql = new StringBuilder(attachments.get(ROUTER_KEY)).append(sql).toString();
+            // 1、 如果前端有指定路由则，优先采用指定的路由
+            if (RouterContext.containsKey(RouterConsts.ROUTER_KEY) && !hasAnnotation(sql)) {
+                sql = new StringBuilder(RouterContext.get(RouterConsts.ROUTER_KEY)).append(sql).toString();
 
                 // 利用反射设置当前BoundSql对应的sql属性为我们建立好的分页Sql语句
                 ReflectionUtil.setFieldValue(boundSql, "sql", sql);
             }
 
-            // 针对只读事物添加读取从库的路由
+            // 2、如果没有路由信息，对只读事物添加读取从库的路由
             if (!hasAnnotation(sql) && connection.isReadOnly()) {
 
                 // 获取当前要执行的Sql语句，也就是我们直接在Mapper映射语句中写的Sql语句
-                sql = new StringBuilder(MYCAT_DB_SLAVE_HINT).append(sql).toString();
+                sql = new StringBuilder(sqlHint.getRouteSlaveHint()).append(sql).toString();
 
                 // 利用反射设置当前BoundSql对应的sql属性为我们建立好的分页Sql语句
                 ReflectionUtil.setFieldValue(boundSql, "sql", sql);
@@ -61,16 +61,14 @@ public class MycatSQLInterceptor implements Interceptor {
 
             result = invocation.proceed();
 
-            if (isDML(sql) && !attachments.containsKey(ROUTER_KEY)) {
+            if (isDML(sql) && !RouterContext.containsKey(RouterConsts.ROUTER_KEY)) {
                 // 如果更改执行的是DML语句，则设置后续的CRUD路由到master
-                attachments.put(ROUTER_KEY, MYCAT_DB_MASTER_HINT);
-
+                RouterContext.put(RouterConsts.ROUTER_KEY, sqlHint.getRouteMasterHint());
             }
 
         } else {
             result = invocation.proceed();
         }
-
 
 
         return result;
@@ -117,7 +115,6 @@ public class MycatSQLInterceptor implements Interceptor {
 
     @Override
     public void setProperties(Properties properties) {
-
     }
 
 }

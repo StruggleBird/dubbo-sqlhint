@@ -30,5 +30,19 @@ public class RouterContext {
         return routerLocal.get().get(key);
     }
 
+    public static void cleanup() {
+        if (routerLocal.get() == null) {
+            return;
+        }
+        routerLocal.remove();
+    }
+
+    public static boolean containsKey(String routerKey) {
+        if (routerLocal.get() == null) {
+            return false;
+        }
+        return routerLocal.get().containsKey(routerKey);
+    }
+
 
 }
