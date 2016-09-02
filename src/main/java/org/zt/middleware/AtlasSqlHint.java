@@ -6,7 +6,7 @@ package org.zt.middleware;
  * @author Ternence
  * @date 2016年7月20日
  */
-public class AtlasSqlHint extends SqlHint {
+public class AtlasSqlHint extends MasterSlaveHint {
 
 
     private static final String DB_MASTER_HINT = "/*master*/";
@@ -21,6 +21,11 @@ public class AtlasSqlHint extends SqlHint {
     @Override
     public String getRouteSlaveHint() {
         return DB_SLAVE_HINT;
+    }
+
+    @Override
+    public String genRouteInfo(String dbRole, String sql) {
+        return new StringBuilder(getRouteSlaveHint()).append(sql).toString();
     }
 
 }

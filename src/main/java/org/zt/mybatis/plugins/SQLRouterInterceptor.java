@@ -14,7 +14,8 @@ import org.apache.ibatis.plugin.Signature;
 import org.zt.dubbo.context.RouterConsts;
 import org.zt.dubbo.context.RouterContext;
 import org.zt.middleware.MycatSqlHint;
-import org.zt.middleware.SqlHint;
+import org.zt.middleware.MasterSlaveHint;
+import org.zt.middleware.ShardingJdbcHint;
 import org.zt.utils.ReflectionUtil;
 
 /**
@@ -26,7 +27,7 @@ import org.zt.utils.ReflectionUtil;
 public class SQLRouterInterceptor implements Interceptor {
 
 
-    private static SqlHint sqlHint = new MycatSqlHint();
+    private static MasterSlaveHint sqlHint = new ShardingJdbcHint(); //实例化hint的实现
 
     public Object intercept(Invocation invocation) throws Throwable {
         Object result = null;
@@ -52,7 +53,7 @@ public class SQLRouterInterceptor implements Interceptor {
             if (!hasAnnotation(sql) && connection.isReadOnly()) {
 
                 // 获取当前要执行的Sql语句，也就是我们直接在Mapper映射语句中写的Sql语句
-                sql = new StringBuilder(sqlHint.getRouteSlaveHint()).append(sql).toString();
+                 sql =  sqlHint.genRouteInfo(MasterSlaveHint.SLAVE,sql);
 
                 // 利用反射设置当前BoundSql对应的sql属性为我们建立好的分页Sql语句
                 ReflectionUtil.setFieldValue(boundSql, "sql", sql);
