@@ -1,4 +1,4 @@
-package org.zt.middleware;
+package com.yunnex.sqlhint.masterslave;
 
 /**
  * Mycat 数据库中间件的SQL hint 实现

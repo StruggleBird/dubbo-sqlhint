@@ -1,4 +1,4 @@
-package org.zt.middleware;
+package com.yunnex.sqlhint.masterslave;
 
 /**
  * Altas 数据库中间件的SQL hint 实现

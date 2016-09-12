@@ -1,9 +1,6 @@
-package org.zt.dubbo.filter.sqlhint;
+package com.yunnex.sqlhint.dubbo.filter.sqlhint;
 
 import java.util.Map;
-
-import org.zt.dubbo.context.RouterConsts;
-import org.zt.dubbo.context.RouterContext;
 
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.extension.Activate;
@@ -15,6 +12,8 @@ import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcException;
+import com.yunnex.sqlhint.dubbo.context.RouterConsts;
+import com.yunnex.sqlhint.dubbo.context.RouterContext;
 
 
 /**
@@ -70,7 +69,7 @@ public class RouterConsumerFilter implements Filter {
         } finally {
             // 如果当前span是最前端(当前span没有提供者表明当前位置处在最前端消费者)则清理路由上下文
             if (!isprovider()) {
-                RouterContext.cleanup();
+//                RouterContext.cleanup();
             }
         }
     }

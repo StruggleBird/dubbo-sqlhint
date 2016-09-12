@@ -1,4 +1,4 @@
-package org.zt.middleware;
+package com.yunnex.sqlhint.masterslave;
 
 /**
  * sql Hint 用来提供给数据库中间件或者数据库实例去解析，然后执行相应的主从路由动作

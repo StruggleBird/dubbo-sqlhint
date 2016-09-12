@@ -1,4 +1,4 @@
-package org.zt.middleware;
+package com.yunnex.sqlhint.masterslave;
 
 import com.dangdang.ddframe.rdb.sharding.api.HintManager;
 
