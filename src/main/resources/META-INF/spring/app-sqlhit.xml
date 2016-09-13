@@ -17,6 +17,8 @@
     
 	<!-- 启动对@Aspectj注解的支持(自定义切面)--> 
 	<aop:aspectj-autoproxy proxy-target-class="true"  />  
+	
+	<bean class="com.yunnex.sqlhint.utils.SpringContextHolder" lazy-init="default" />
 
 	<context:annotation-config />
 	

@@ -15,6 +15,7 @@ import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.yunnex.sqlhint.dubbo.context.RouterConsts;
 import com.yunnex.sqlhint.dubbo.context.RouterContext;
@@ -28,19 +29,20 @@ import com.yunnex.sqlhint.utils.ReflectionUtil;
  * @author Ternence
  */
 @Intercepts({@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class})})
+@Component
 public class SQLRouterInterceptor implements Interceptor {
 
 
     @Autowired
-    private  MasterSlaveHint msHint; 
-    
-    
+    private MasterSlaveHint msHint;
+
+
     /**
-     * DML SQL PREFIX 
+     * DML SQL PREFIX
      */
     private static List<String> dmlSQLs = new ArrayList<String>();
-    
-    static{
+
+    static {
         dmlSQLs.add("update");
         dmlSQLs.add("insert");
         dmlSQLs.add("delete");
@@ -71,7 +73,7 @@ public class SQLRouterInterceptor implements Interceptor {
             if (!hasAnnotation(sql) && connection.isReadOnly()) {
 
                 // 获取当前要执行的Sql语句，也就是我们直接在Mapper映射语句中写的Sql语句
-                 sql =  msHint.genRouteInfo(MasterSlaveHint.SLAVE,sql);
+                sql = msHint.genRouteInfo(MasterSlaveHint.SLAVE, sql);
 
                 // 利用反射设置当前BoundSql对应的sql属性为我们建立好的分页Sql语句
                 ReflectionUtil.setFieldValue(boundSql, "sql", sql);
@@ -82,7 +84,8 @@ public class SQLRouterInterceptor implements Interceptor {
 
             if (isDML(sql) && !RouterContext.containsKey(RouterConsts.ROUTER_KEY)) {
                 // 如果更改执行的是DML语句，则设置后续的CRUD路由到master
-//                String appName = PropertiesUtil.get("app.name");  //TODO这里可能需要针对应用来进行主从路由，存在一条链路路由到多个应用的不同DB中
+                // String appName = PropertiesUtil.get("app.name");
+                // //TODO这里可能需要针对应用来进行主从路由，存在一条链路路由到多个应用的不同DB中
                 RouterContext.put(RouterConsts.ROUTER_KEY, msHint.getRouteMasterHint());
             }
 
@@ -105,17 +108,17 @@ public class SQLRouterInterceptor implements Interceptor {
      */
     private boolean isDML(String sql) {
         if (hasAnnotation(sql)) {
-            sql = sql.replaceFirst("/\\*.+\\*/", "").trim(); //去除sqlhint
+            sql = sql.replaceFirst("/\\*.+\\*/", "").trim(); // 去除sqlhint
         }
         sql = sql.toLowerCase();
-        
-        
+
+
         for (String dmlSQL : dmlSQLs) {
             if (sql.startsWith(dmlSQL)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -139,7 +142,6 @@ public class SQLRouterInterceptor implements Interceptor {
     }
 
     @Override
-    public void setProperties(Properties properties) {
-    }
+    public void setProperties(Properties properties) {}
 
 }
