@@ -14,13 +14,11 @@ import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.yunnex.sqlhint.dubbo.context.RouterConsts;
 import com.yunnex.sqlhint.dubbo.context.RouterContext;
 import com.yunnex.sqlhint.masterslave.MasterSlaveHint;
-import com.yunnex.sqlhint.utils.PropertiesUtil;
 import com.yunnex.sqlhint.utils.ReflectionUtil;
 
 /**
