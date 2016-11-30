@@ -1,3 +1,2 @@
 mycatRouterProviderFilter=com.yunnex.sqlhint.dubbo.filter.sqlhint.RouterProviderFilter
 mycatRouterConsumerFilter=com.yunnex.sqlhint.dubbo.filter.sqlhint.RouterConsumerFilter
-routerContextCleanFilter=com.yunnex.sqlhint.dubbo.filter.sqlhint.RouterContextCleanFilter

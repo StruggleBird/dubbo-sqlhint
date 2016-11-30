@@ -3,6 +3,8 @@ package com.yunnex.sqlhint.dubbo.context;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.yunnex.sqlhint.RouterInfo;
+
 /**
  * 当前上下文路由信息
  * 
@@ -11,19 +13,19 @@ import java.util.Map;
  */
 public class RouterContext {
 
-    private static ThreadLocal<Map<String, String>> routerLocal = new ThreadLocal<Map<String, String>>();
+    private static ThreadLocal<Map<String, RouterInfo>> routerLocal = new ThreadLocal<Map<String, RouterInfo>>();
 
-    public static void put(String key, String value) {
-        Map<String, String> map = routerLocal.get();
+    public static void put(String key, RouterInfo info) {
+        Map<String, RouterInfo> map = routerLocal.get();
         if (map == null) {
-            map = new HashMap<String, String>();
+            map = new HashMap<String, RouterInfo>();
             routerLocal.set(map);
         }
 
-        map.put(key, value);
+        map.put(key, info);
     }
 
-    public static String get(String key) {
+    public static RouterInfo get(String key) {
         if (routerLocal.get() == null) {
             return null;
         }
@@ -43,6 +45,5 @@ public class RouterContext {
         }
         return routerLocal.get().containsKey(routerKey);
     }
-
 
 }

@@ -1,7 +1,5 @@
 package com.yunnex.sqlhint.dubbo.filter.sqlhint;
 
-import java.util.Map;
-
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.extension.Activate;
 import com.alibaba.dubbo.common.logger.Logger;
@@ -12,6 +10,8 @@ import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcException;
+import com.yunnex.sqlhint.RouterInfo;
+import com.yunnex.sqlhint.annotation.Scope;
 import com.yunnex.sqlhint.dubbo.context.RouterConsts;
 import com.yunnex.sqlhint.dubbo.context.RouterContext;
 
@@ -41,24 +41,24 @@ public class RouterConsumerFilter implements Filter {
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
         try {
             // 接收到调用的时候以传入的为准
-            String sqlrouter = RouterContext.get(RouterConsts.ROUTER_KEY);
-            if (sqlrouter != null && invocation.getAttachment(RouterConsts.ROUTER_KEY) == null) {
-                // 如果路由信息不为空则执行并传递该路由
-                invocation.getAttachments().put(RouterConsts.ROUTER_KEY, sqlrouter);
+            RouterInfo ri = RouterContext.get(RouterConsts.ROUTER_KEY);
+            if (ri != null && Scope.REMOTE.equals(ri.getScope()) && invocation.getAttachment(RouterConsts.ROUTER_KEY) == null) {
+                // 如果路由信息不为空,且作用域为remote,则执行并传递该路由
+                invocation.getAttachments().put(RouterConsts.ROUTER_KEY, ri.toString());
             }
 
             Result result = invoker.invoke(invocation);
 
-            Map<String, String> attachments = result.getAttachments();
+            // Map<String, String> attachments = result.getAttachments();
             // 如果远端返回的结果中包含了路由信息，则本地保存。
             // 这里判断，如果调用的远端服务中包含了路由信息 ，则后续的远端请求和本地SQL执行都会依照该路由信息执行 。
-            if (attachments.containsKey(RouterConsts.ROUTER_KEY)) {
-
-                // 写入上下文
-                if (sqlrouter == null) {
-                    RouterContext.put(RouterConsts.ROUTER_KEY, attachments.get(RouterConsts.ROUTER_KEY));
-                }
-            }
+            // if (attachments.containsKey(RouterConsts.ROUTER_KEY)) {
+            //
+            // // 写入上下文
+            // if (sqlrouter == null) {
+            // RouterContext.put(RouterConsts.ROUTER_KEY, attachments.get(RouterConsts.ROUTER_KEY));
+            // }
+            // }
 
             return result;
         } catch (RuntimeException e) {
@@ -68,15 +68,15 @@ public class RouterConsumerFilter implements Filter {
             throw e;
         } finally {
             // 如果当前span是最前端(当前span没有提供者表明当前位置处在最前端消费者)则清理路由上下文
-            if (!isprovider()) {
-//                RouterContext.cleanup();
-            }
+            // if (!isprovider()) {
+            // // RouterContext.cleanup();
+            // }
         }
     }
 
-    private boolean isprovider() {
-        String isprovider = RouterContext.get("_isprovider");
-        return isprovider != null && "true".equalsIgnoreCase(isprovider);
-    }
+    // private boolean isprovider() {
+    // String isprovider = RouterContext.get("_isprovider");
+    // return isprovider != null && "true".equalsIgnoreCase(isprovider);
+    // }
 
 }

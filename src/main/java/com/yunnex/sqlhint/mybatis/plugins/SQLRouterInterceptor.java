@@ -16,6 +16,7 @@ import org.apache.ibatis.plugin.Signature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.yunnex.sqlhint.RouterInfo;
 import com.yunnex.sqlhint.dubbo.context.RouterConsts;
 import com.yunnex.sqlhint.dubbo.context.RouterContext;
 import com.yunnex.sqlhint.masterslave.MasterSlaveHint;
@@ -61,7 +62,8 @@ public class SQLRouterInterceptor implements Interceptor {
 
             // 1、 如果前端有指定路由则，优先采用指定的路由
             if (RouterContext.containsKey(RouterConsts.ROUTER_KEY) && !hasAnnotation(sql)) {
-                sql = new StringBuilder(RouterContext.get(RouterConsts.ROUTER_KEY)).append(sql).toString();
+                RouterInfo routerInfo = RouterContext.get(RouterConsts.ROUTER_KEY);
+                sql = new StringBuilder(routerInfo.getSqlrouter()).append(sql).toString();
 
                 // 利用反射设置当前BoundSql对应的sql属性为我们建立好的分页Sql语句
                 ReflectionUtil.setFieldValue(boundSql, "sql", sql);
@@ -80,12 +82,12 @@ public class SQLRouterInterceptor implements Interceptor {
 
             result = invocation.proceed();
 
-            if (isDML(sql) && !RouterContext.containsKey(RouterConsts.ROUTER_KEY)) {
+            // if (isDML(sql) && !RouterContext.containsKey(RouterConsts.ROUTER_KEY)) {
                 // 如果更改执行的是DML语句，则设置后续的CRUD路由到master
                 // String appName = PropertiesUtil.get("app.name");
                 // //TODO这里可能需要针对应用来进行主从路由，存在一条链路路由到多个应用的不同DB中
-                RouterContext.put(RouterConsts.ROUTER_KEY, msHint.getRouteMasterHint());
-            }
+            // RouterContext.put(RouterConsts.ROUTER_KEY, msHint.getRouteMasterHint());
+            // }
 
         } else {
             result = invocation.proceed();
